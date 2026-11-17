@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#667eea">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Noten">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Notenverwaltung</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23667eea'/%3E%3Ctext x='32' y='44' font-size='34' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3E1%2C3%3C/text%3E%3C/svg%3E">
+<script id="notenBackup" type="application/json">null</script>
+<style>
+:root{--bg:#f3f4fb;--card:#fff;--text:#1d1f2e;--muted:#6b7080;--line:#e6e8f0;--pri:#667eea;--pri2:#764ba2;--pri-soft:#eef0fd;--shadow:0 2px 10px rgba(30,30,80,.06);
+--g1b:#dff5ea;--g1c:#157a4f;--g2b:#fdf3d0;--g2c:#8a6a00;--g3b:#fde6d3;--g3c:#a8500a;--g4b:#fbdcdc;--g4c:#b42828}
+@media (prefers-color-scheme:dark){:root{--bg:#12131a;--card:#1c1e28;--text:#eceef6;--muted:#9a9fb2;--line:#2c2f3d;--pri-soft:#262a45;--shadow:none;
+--g1b:#173d2c;--g1c:#6fe0a8;--g2b:#3d3412;--g2c:#f0cf5a;--g3b:#43290f;--g3c:#f5a35e;--g4b:#45191b;--g4c:#ff8a8a}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-tap-highlight-color:transparent}
+body.noscroll{overflow:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.top{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:calc(14px + env(safe-area-inset-top)) 16px 14px;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(60,40,120,.25)}
+.top-row{max-width:720px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.app-title{font-size:1.2rem;font-weight:700}
+.app-sub{font-size:.82rem;opacity:.85}
+.year-select{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:10px;padding:8px 10px;font-size:.88rem;max-width:58%}
+.year-select option{color:#222}
+main{max-width:720px;margin:0 auto;padding:16px 14px calc(150px + env(safe-area-inset-bottom))}
+.hero{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 6px 20px rgba(102,126,234,.3)}
+.hero-label{opacity:.92;font-size:.9rem}
+.hero-value{font-size:2.6rem;font-weight:800;letter-spacing:-.02em;margin:2px 0 10px;font-variant-numeric:tabular-nums}
+.hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(92px,1fr));gap:8px}
+.hero-grid div{background:rgba(255,255,255,.16);border-radius:12px;padding:8px 10px;font-size:.74rem;line-height:1.25}
+.hero-grid span{display:block;font-size:1.25rem;font-weight:700}
+.hero-note{margin-top:10px;font-size:.8rem;opacity:.92}
+.sec{font-size:1rem;font-weight:700;margin:18px 2px 10px}
+.sec-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--card);border-radius:14px;padding:11px 14px;box-shadow:var(--shadow);border:1px solid var(--line);min-height:58px}
+button.row:active{transform:scale(.99)}
+.row-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.row-title{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-sub{font-size:.8rem;color:var(--muted);margin-top:2px}
+.row-avg{font-weight:700;color:var(--pri);font-variant-numeric:tabular-nums}
+.chev{color:var(--muted);display:flex}
+.badge{min-width:46px;height:36px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;padding:0 8px;font-variant-numeric:tabular-nums;flex:none}
+.g1{background:var(--g1b);color:var(--g1c)}.g2{background:var(--g2b);color:var(--g2c)}.g3{background:var(--g3b);color:var(--g3c)}.g4{background:var(--g4b);color:var(--g4c)}.g0{background:var(--pri-soft);color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:var(--shadow)}
+.card-title{font-weight:700;margin-bottom:10px}
+.chart{width:100%;height:auto;display:block}
+.chart .gl{stroke:var(--line);stroke-width:1}
+.chart text{stroke:none}
+.chart .gt{fill:var(--muted);font-size:11px}
+.chart .avgl{stroke:var(--pri);stroke-width:1.5;stroke-dasharray:4 4}
+.chart .avgt{fill:var(--pri);font-size:11px;font-weight:700}
+.chart .pl{fill:none;stroke:var(--pri);stroke-width:2.5;stroke-linejoin:round}
+.chart .pt{stroke:var(--card);stroke-width:2}
+.chart .pt.g1{fill:#22a06b}.chart .pt.g2{fill:#d9a400}.chart .pt.g3{fill:#e8730c}.chart .pt.g4{fill:#d93f3f}
+.ziel-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:.92rem}
+.pill{border-radius:8px;padding:5px 10px;font-weight:700;font-size:.85rem;white-space:nowrap}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;align-items:center}
+.chips.wrap{flex-wrap:wrap;overflow:visible}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 12px;font-size:.85rem;white-space:nowrap}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+.chip-inp{width:74px !important;padding:7px 10px !important;border-radius:999px !important;text-align:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:12px 16px;border-radius:12px;background:var(--pri-soft);color:var(--pri);font-weight:600;min-height:46px;text-align:center}
+.btn.pri{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff}
+.btn.sm{min-height:36px;padding:7px 12px;font-size:.88rem}
+.btn.ghost{background:none;padding-left:0}
+.danger-btn{background:var(--g4b) !important;color:var(--g4c) !important}
+.stack{display:flex;flex-direction:column;gap:8px}
+.row-btns{margin-top:10px}
+.icon-btns{display:flex;gap:6px;align-items:center;flex:none}
+.icon-btn{width:40px;height:40px;border-radius:10px;background:var(--pri-soft);color:var(--pri);display:inline-flex;align-items:center;justify-content:center}
+.icon-btn.danger{background:var(--g4b);color:var(--g4c)}
+.icon-btn:disabled{opacity:.3}
+.detail-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px}
+.fab{position:fixed;right:max(16px,calc(50% - 344px));bottom:calc(80px + env(safe-area-inset-bottom));z-index:15;background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border-radius:999px;padding:14px 20px;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 8px 24px rgba(102,126,234,.45)}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav.bottom button{flex:1;max-width:180px;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 8px;color:var(--muted);font-size:.72rem;font-weight:600}
+nav.bottom button.on{color:var(--pri)}
+nav.bottom svg{width:24px;height:24px}
+.sheet{position:fixed;inset:0;background:rgba(15,15,30,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
+.sheet-box{background:var(--card);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(18px + env(safe-area-inset-bottom));animation:up .2s ease-out}
+@media (min-width:600px){.sheet{align-items:center}.sheet-box{border-radius:20px}}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.sheet-head h3{font-size:1.15rem}
+.x{font-size:1.8rem;line-height:1;color:var(--muted);width:40px;height:40px}
+.lbl{display:block;font-size:.82rem;font-weight:600;color:var(--muted);margin:12px 0 5px}
+.inp{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:12px;background:var(--bg);font-size:16px}
+.inp:focus{outline:none;border-color:var(--pri)}
+.inp.big{font-size:1.4rem;font-weight:700}
+textarea.inp{resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actions{display:flex;gap:8px;margin-top:18px}
+.actions .btn{flex:1}
+.err{color:#d93f3f;font-size:.85rem;min-height:1em;margin-top:8px;font-weight:600}
+.hint{font-size:.8rem;color:var(--muted);margin-top:8px;line-height:1.45}
+.hint.center{text-align:center;margin-top:20px}
+.txt{font-size:.9rem;line-height:1.5}
+.txt p+p{margin-top:8px}
+.pick{display:flex;flex-direction:column;gap:6px;margin-top:6px;max-height:45vh;overflow:auto}
+.pick-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.pick-row input[type=checkbox]{width:22px;height:22px;accent-color:var(--pri);flex:none}
+.pick-row span{flex:1;font-size:.92rem}
+.pick-row .w{width:64px;padding:8px;text-align:center;flex:none}
+.pick-row.dis{opacity:.5}
+.empty{text-align:center;padding:26px 16px;color:var(--muted)}
+.empty h3{color:var(--text);margin:8px 0}
+.empty p{margin-bottom:16px}
+.empty.small{padding:16px;background:var(--card);border-radius:14px;border:1px dashed var(--line)}
+.empty-ico{font-size:2.4rem}
+.banner{display:block;width:100%;text-align:left;border-radius:12px;padding:11px 14px;margin-bottom:12px;font-size:.88rem;font-weight:600}
+.banner.warn{background:var(--g2b);color:var(--g2c)}
+.banner.bad{background:var(--g4b);color:var(--g4c)}
+.tag{font-size:.68rem;background:var(--pri);color:#fff;border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:middle}
+.row.group{flex-direction:column;align-items:stretch;gap:8px}
+.group-head{display:flex;align-items:center;gap:12px;cursor:pointer}
+.members{border-top:1px solid var(--line);padding-top:6px}
+.member{display:flex;justify-content:space-between;font-size:.85rem;padding:3px 0;color:var(--muted)}
+.member b{color:var(--text);font-variant-numeric:tabular-nums}
+#toast{position:fixed;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);background:#222433;color:#fff;padding:11px 18px;border-radius:12px;font-size:.9rem;opacity:0;pointer-events:none;transition:.25s;z-index:60;max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@keyframes fade{from{opacity:0}}
+@keyframes up{from{transform:translateY(40px)}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<div id="toast"></div>
+<input type="file" id="file-import" hidden>
+<script>
+'use strict';
+/* ===== Konstanten ===== */
+const STORAGE_KEY = 'notenapp_v2';
+const OLD_KEY = 'schoolGrades';
+const APP_VERSION = '2.1';
+const YEAR1_SUBJECTS = ['BKOM','BE','BWL','TM','TPH','TKOM','IT','AUT','ME-ET-HH','ME-ET-WI','ME-FT-SJ','ME-FT-MD','SST-MES','SST-PO','SST-ROB','SST-QM','FLA-WP','SST-SHT','TPH-FT-SJ','GND','TAR'];
+const GRADE_TYPES = ['Klassenarbeit','Test','Mündlich','GFS / Referat','Praktikum / Projekt','Sonstiges'];
+const WEIGHT_CHIPS = [0.5, 1, 1.5, 2, 3];
+// Quelltext der App (vor dem ersten Rendern) – wird für "App mit Noten speichern" gebraucht
+const TEMPLATE = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+const IC = {
+  home:'<svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>',
+  book:'<svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5"/><path d="M8 7h7"/></svg>',
+  award:'<svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="M8.5 14L7 22l5-3 5 3-1.5-8"/></svg>',
+  data:'<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>',
+  plus:'<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+  back:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
+  edit:'<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>',
+  trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>',
+  up:'<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>',
+  down:'<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>',
+  chev:'<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>'
+};
+
+/* ===== Hilfsfunktionen ===== */
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = (n, d = 2) => (n == null || isNaN(n)) ? '–' : Number(n).toFixed(d).replace('.', ',');
+const fmtG = v => Math.abs(v * 10 - Math.round(v * 10)) < 1e-9 ? fmt(v, 1) : fmt(v, 2);
+const fmtW = n => String(Math.round(n * 100) / 100).replace('.', ',');
+const pad = n => String(n).padStart(2, '0');
+const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); };
+const fmtDate = s => { if (!s) return ''; const p = s.split('-'); return p.length === 3 ? p[2] + '.' + p[1] + '.' + p[0] : s; };
+const parseNum = s => { const n = parseFloat(String(s == null ? '' : s).trim().replace(',', '.')); return isNaN(n) ? null : n; };
+const gClass = v => v == null ? 'g0' : v < 2.5 ? 'g1' : v < 3.5 ? 'g2' : v < 4.5 ? 'g3' : 'g4';
+const val = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+
+/* ===== Berechnungen ===== */
+function avg(grades) {
+  let s = 0, w = 0;
+  for (const g of grades) { const k = g.weight > 0 ? g.weight : 1; s += g.value * k; w += k; }
+  return w > 0 ? s / w : null;
+}
+// Zeugnisnote: Schnitt < 1,5 → 1; < 2,5 → 2; ... (x,50 wird zur schlechteren Note)
+function zeugnisNote(a) {
+  if (a == null) return null;
+  const r = Math.round(a * 10000) / 10000;
+  for (let n = 1; n <= 5; n++) if (r < n + 0.5) return n;
+  return 6;
+}
+// Welche Note (0,1er-Schritte) brauche ich höchstens in der nächsten Note mit Gewicht w,
+// damit der Schnitt unter target + 0,5 bleibt?
+function needed(grades, target, w) {
+  if (target >= 6) return { state: 'safe' };
+  let S = 0, W = 0;
+  for (const g of grades) { const k = g.weight > 0 ? g.weight : 1; S += g.value * k; W += k; }
+  const limit = target + 0.5;
+  const B = (limit * (W + w) - S) / w;          // nächste Note muss < B sein
+  let x = Math.ceil(B * 10 - 1e-6) / 10 - 0.1;  // größte Note im 0,1-Raster, die < B ist
+  x = Math.round(x * 10) / 10;
+  if (x >= 6) return { state: 'safe' };
+  if (x < 1) return { state: 'impossible' };
+  return { state: 'need', value: x };
+}
+function groupAvg(y, g) {
+  let s = 0, w = 0;
+  for (const m of g.members) {
+    const sub = y.subjects.find(x => x.id === m.subjectId); if (!sub) continue;
+    const a = avg(sub.grades); if (a == null) continue;
+    s += a * m.weight; w += m.weight;
+  }
+  return w > 0 ? s / w : null;
+}
+function zeugnisItems(y) {
+  const map = new Map();
+  y.groups.forEach(g => g.members.forEach(m => { if (!map.has(m.subjectId)) map.set(m.subjectId, g); }));
+  const out = [], done = new Set();
+  const pushGroup = g => { done.add(g.id); out.push({ kind: 'group', id: g.id, name: g.name, value: groupAvg(y, g), group: g }); };
+  y.subjects.forEach(s => {
+    const g = map.get(s.id);
+    if (g) { if (!done.has(g.id)) pushGroup(g); }
+    else out.push({ kind: 'subject', id: s.id, name: s.name, value: avg(s.grades) });
+  });
+  y.groups.forEach(g => { if (!done.has(g.id)) pushGroup(g); });
+  return out;
+}
+function overall(y) {
+  const v = zeugnisItems(y).filter(i => i.value != null);
+  if (!v.length) return null;
+  return {
+    exact: v.reduce((a, i) => a + i.value, 0) / v.length,
+    notes: v.reduce((a, i) => a + zeugnisNote(i.value), 0) / v.length,
+    count: v.length
+  };
+}
+function sortedGrades(grades) {
+  return grades.map((g, i) => ({ g, i }))
+    .sort((a, b) => (a.g.date || '').localeCompare(b.g.date || '') || (a.g.created - b.g.created) || (a.i - b.i))
+    .map(x => x.g);
+}
+const allGrades = y => y.subjects.flatMap(s => s.grades.map(g => ({ s, g })));
+
+/* ===== Daten laden / speichern ===== */
+function newYear(name) { return { id: uid(), name, subjects: [], groups: [] }; }
+function freshDb() {
+  const y = newYear('2. Jahr (2026/27)');
+  return { version: 2, savedAt: 0, lastBackup: 0, settings: { name: '' }, activeYearId: y.id, years: [y] };
+}
+function yearFromOld(arr, name) {
+  const y = newYear(name);
+  y.subjects = arr.filter(s => s && s.name).map(s => ({
+    id: uid(), name: String(s.name),
+    grades: (Array.isArray(s.grades) ? s.grades : []).map(g => ({
+      id: uid(), value: Number(g.value), desc: String(g.description || g.desc || ''),
+      weight: Number(g.weight) > 0 ? Number(g.weight) : 1, type: 'Klassenarbeit', date: '', created: 0
+    })).filter(g => g.value >= 1 && g.value <= 6)
+  }));
+  const find = n => y.subjects.find(s => s.name === n);
+  const defs = [
+    ['TPH (kombiniert)', [['TPH', 2], ['TPH-FT-SJ', 1]]],
+    ['SST-Bereich', [['SST-QM', 1], ['SST-SHT', 1]]],
+    ['ME gesamt', [['ME-ET-HH', 1], ['ME-ET-WI', 1], ['ME-FT-SJ', 1], ['ME-FT-MD', 1]]]
+  ];
+  defs.forEach(([gn, ms]) => {
+    const members = ms.map(([n, w]) => { const s = find(n); return s ? { subjectId: s.id, weight: w } : null; }).filter(Boolean);
+    if (members.length >= 2) y.groups.push({ id: uid(), name: gn, members });
+  });
+  return y;
+}
+function normalize(d) {
+  if (!d || typeof d !== 'object' || !Array.isArray(d.years)) return freshDb();
+  const out = {
+    version: 2, savedAt: Number(d.savedAt) || 0, lastBackup: Number(d.lastBackup) || 0,
+    settings: Object.assign({ name: '' }, d.settings || {}), activeYearId: String(d.activeYearId || ''),
+    years: d.years.filter(y => y && typeof y === 'object').map(y => {
+      const subjects = (Array.isArray(y.subjects) ? y.subjects : []).filter(s => s && typeof s === 'object').map(s => ({
+        id: String(s.id || uid()), name: String(s.name || 'Fach'),
+        grades: (Array.isArray(s.grades) ? s.grades : []).filter(g => g && typeof g === 'object').map(g => ({
+          id: String(g.id || uid()), value: Number(g.value),
+          desc: String(g.desc != null ? g.desc : (g.description || '')),
+          weight: Number(g.weight) > 0 ? Number(g.weight) : 1,
+          type: String(g.type || 'Klassenarbeit'), date: String(g.date || ''), created: Number(g.created) || 0
+        })).filter(g => g.value >= 1 && g.value <= 6)
+      }));
+      const ids = new Set(subjects.map(s => s.id));
+      const groups = (Array.isArray(y.groups) ? y.groups : []).filter(g => g && typeof g === 'object').map(g => ({
+        id: String(g.id || uid()), name: String(g.name || 'Zeugnisfach'),
+        members: (Array.isArray(g.members) ? g.members : []).map(m => ({ subjectId: String(m.subjectId), weight: Number(m.weight) > 0 ? Number(m.weight) : 1 }))
+          .filter(m => ids.has(m.subjectId))
+      })).filter(g => g.members.length);
+      return { id: String(y.id || uid()), name: String(y.name || 'Schuljahr'), subjects, groups };
+    })
+  };
+  if (!out.years.length) out.years.push(newYear('2. Jahr (2026/27)'));
+  if (!out.years.some(y => y.id === out.activeYearId)) out.activeYearId = out.years[out.years.length - 1].id;
+  return out;
+}
+function readEmbedded() {
+  try {
+    const t = document.getElementById('notenBackup').textContent.trim();
+    if (!t || t === 'null') return null;
+    return JSON.parse(t);
+  } catch (e) { return null; }
+}
+let storageOk = true;
+try { localStorage.setItem('__t', '1'); localStorage.removeItem('__t'); } catch (e) { storageOk = false; }
+
+function load() {
+  let local = null;
+  try { const t = localStorage.getItem(STORAGE_KEY); if (t) local = JSON.parse(t); } catch (e) {}
+  const emb = readEmbedded();
+  let data = (local && emb) ? ((emb.savedAt || 0) > (local.savedAt || 0) ? emb : local) : (local || emb);
+  if (!data) {
+    data = freshDb();
+    let old = null;
+    try { const t = localStorage.getItem(OLD_KEY); if (t) old = JSON.parse(t); } catch (e) {}
+    if (Array.isArray(old) && old.some(s => s && s.grades && s.grades.length)) data.years.unshift(yearFromOld(old, '1. Jahr (2025/26)'));
+  }
+  return normalize(data);
+}
+function save() {
+  db.savedAt = Date.now();
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); storageOk = true; } catch (e) { storageOk = false; }
+}
+
+let db = load();
+const ui = { tab: 'overview', subjectId: null, nextWeight: 1, modal: null, lastSubjectId: null };
+const year = () => db.years.find(y => y.id === db.activeYearId) || db.years[0];
+
+/* ===== Installation als App ===== */
+const isOnline = /^https?:$/.test(location.protocol);
+const isStandalone = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let installPrompt = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; render(); });
+window.addEventListener('appinstalled', () => { installPrompt = null; render(); toast('App installiert – du findest sie jetzt auf dem Startbildschirm'); });
+async function installApp() {
+  if (installPrompt) {
+    installPrompt.prompt();
+    try { await installPrompt.userChoice; } catch (e) {}
+    installPrompt = null; render();
+  } else { ui.tab = 'data'; render(); window.scrollTo(0, 0); }
+}
+function installCard() {
+  if (isStandalone()) return '';
+  if (installPrompt) return `<div class="card"><div class="card-title">📲 Als App installieren</div><p class="txt">Lege die Notenverwaltung als App auf deinen Startbildschirm. Sie startet dann im Vollbild und funktioniert auch ohne Internet.</p><button class="btn pri" style="width:100%;margin-top:12px" data-a="install">App installieren</button></div>`;
+  if (isOnline && isIOS) return `<div class="card txt"><div class="card-title">📲 Als App installieren (iPhone)</div><p>1. Diese Seite in <b>Safari</b> öffnen.<br>2. Unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil nach oben).<br>3. <b>„Zum Home-Bildschirm“</b> wählen und auf <b>Hinzufügen</b> tippen.</p></div>`;
+  if (isOnline) return `<div class="card txt"><div class="card-title">📲 Als App installieren (Android)</div><p>In <b>Chrome</b> oben rechts auf <b>⋮</b> tippen und <b>„App installieren“</b> oder <b>„Zum Startbildschirm hinzufügen“</b> wählen.</p></div>`;
+  return '';
+}
+
+/* ===== Navigation (Zurück-Taste am Handy) ===== */
+let navDepth = 0, popSkip = 0;
+function pushNav() { try { history.pushState({ d: navDepth + 1 }, ''); navDepth++; } catch (e) {} }
+function popNav() { if (navDepth > 0) { popSkip++; navDepth--; history.back(); } }
+window.addEventListener('popstate', () => {
+  if (popSkip > 0) { popSkip--; return; }
+  if (navDepth > 0) navDepth--;
+  if (ui.modal) { ui.modal = null; renderModal(); return; }
+  if (ui.subjectId) { ui.subjectId = null; render(); }
+});
+function openModal(m) { ui.modal = m; pushNav(); renderModal(); }
+function closeModal() { if (!ui.modal) return; ui.modal = null; renderModal(); popNav(); }
+
+let toastTimer = null;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ===== Ansichten ===== */
+function viewHeader(y) {
+  return `<header class="top"><div class="top-row"><div><div class="app-title">Notenverwaltung</div><div class="app-sub">${esc(db.settings.name || 'Meine Noten')}</div></div>
+  <select class="year-select" data-change="year" aria-label="Schuljahr">${db.years.map(x => `<option value="${esc(x.id)}" ${x.id === y.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select></div></header>`;
+}
+function banners() {
+  let h = '';
+  if (!storageOk) h += `<div class="banner bad">⚠️ Dieser Browser speichert hier nicht dauerhaft. Sichere deine Noten über <b>Daten → App mit allen Noten speichern</b>.</div>`;
+  if (!isStandalone() && (installPrompt || (isOnline && isIOS))) h += `<button class="banner warn" data-a="install">📲 Als App auf dem Startbildschirm installieren ›</button>`;
+  const total = db.years.reduce((t, y) => t + y.subjects.reduce((u, s) => u + s.grades.length, 0), 0);
+  const days = db.lastBackup ? (Date.now() - db.lastBackup) / 864e5 : Infinity;
+  if (total > 0 && days > 14) h += `<button class="banner warn" data-a="nav" data-tab="data">💾 ${db.lastBackup ? 'Letztes Backup vor ' + Math.floor(days) + ' Tagen' : 'Noch kein Backup gemacht'} – jetzt sichern ›</button>`;
+  return h;
+}
+function subjectRow(s) {
+  const a = avg(s.grades), z = zeugnisNote(a);
+  return `<button class="row" data-a="open-subject" data-id="${s.id}"><span class="row-main"><span class="row-title">${esc(s.name)}</span><span class="row-sub">${s.grades.length} ${s.grades.length === 1 ? 'Note' : 'Noten'}</span></span>${a != null ? `<span class="row-avg">${fmt(a)}</span>` : ''}<span class="badge ${gClass(z)}">${z != null ? z : '–'}</span><span class="chev">${IC.chev}</span></button>`;
+}
+function gradeRow(s, g, showSubject) {
+  const title = showSubject ? esc(s.name) + ' · ' + esc(g.desc || g.type) : esc(g.desc || g.type);
+  return `<button class="row" data-a="edit-grade" data-s="${s.id}" data-g="${g.id}"><span class="badge ${gClass(g.value)}">${fmtG(g.value)}</span><span class="row-main"><span class="row-title">${title}</span><span class="row-sub">${[g.desc ? esc(g.type) : '', g.date ? fmtDate(g.date) : '', 'Gew. ' + fmtW(g.weight)].filter(Boolean).join(' · ')}</span></span><span class="chev">${IC.chev}</span></button>`;
+}
+function emptyYear(y) {
+  const others = db.years.filter(x => x.id !== y.id && x.subjects.length);
+  return `<div class="empty"><div class="empty-ico">📚</div><h3>Noch keine Fächer in „${esc(y.name)}“</h3><p>Lege deine Fächer für dieses Schuljahr an – mehrere auf einmal geht auch.</p>
+  <div class="stack"><button class="btn pri" data-a="add-subject">${IC.plus} Fächer anlegen</button>
+  ${others.length ? `<button class="btn" data-a="copy-subjects">Fächer aus anderem Schuljahr übernehmen</button>` : ''}
+  <button class="btn" data-a="import">Backup importieren (z. B. Datei vom 1. Jahr)</button></div></div>`;
+}
+function viewOverview(y) {
+  const ov = overall(y), all = allGrades(y);
+  let h = banners();
+  h += `<section class="hero"><div class="hero-label">Gesamtschnitt · ${esc(y.name)}</div><div class="hero-value">${fmt(ov && ov.exact)}</div>
+  <div class="hero-grid"><div><span>${ov ? fmt(ov.notes) : '–'}</span>Schnitt der Zeugnisnoten</div><div><span>${ov ? ov.count : 0}</span>Zeugnisfächer mit Noten</div><div><span>${all.length}</span>Noten eingetragen</div></div></section>`;
+  if (!y.subjects.length) return h + emptyYear(y);
+  const withGrades = y.subjects.filter(s => s.grades.length);
+  h += `<h2 class="sec">Fächer mit Noten</h2>`;
+  h += withGrades.length ? `<div class="list">${withGrades.map(subjectRow).join('')}</div>` : `<div class="empty small">Noch keine Noten in diesem Schuljahr.<br>Tippe unten auf <b>+ Note</b>.</div>`;
+  const recent = all.slice().sort((a, b) => (b.g.created - a.g.created) || (b.g.date || '').localeCompare(a.g.date || '')).slice(0, 5);
+  if (recent.length) h += `<h2 class="sec">Zuletzt eingetragen</h2><div class="list">${recent.map(({ s, g }) => gradeRow(s, g, true)).join('')}</div>`;
+  return h;
+}
+function viewSubjects(y) {
+  if (!y.subjects.length) return emptyYear(y);
+  return `<div class="sec-row"><h2 class="sec">Alle Fächer (${y.subjects.length})</h2><button class="btn sm" data-a="add-subject">${IC.plus} Fach</button></div>
+  <div class="list">${y.subjects.map(subjectRow).join('')}</div>
+  <p class="hint">Tippe auf ein Fach, um Noten einzutragen oder das Fach umzubenennen, zu verschieben oder zu löschen. Die Zahl rechts ist die Zeugnisnote.</p>`;
+}
+function chart(grades, a) {
+  const gs = sortedGrades(grades), n = gs.length;
+  const W = 320, H = 140, L = 26, R = 12, T = 12, B = 10;
+  const X = i => L + (n === 1 ? (W - L - R) / 2 : i * (W - L - R) / (n - 1));
+  const Y = v => T + (v - 1) / 5 * (H - T - B);
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Notenverlauf">`;
+  for (let v = 1; v <= 6; v++) s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="gl"/><text x="${L - 8}" y="${Y(v) + 4}" class="gt" text-anchor="end">${v}</text>`;
+  if (a != null) s += `<line x1="${L}" x2="${W - R}" y1="${Y(a)}" y2="${Y(a)}" class="avgl"/><text x="${W - R}" y="${Y(a) - 5}" class="avgt" text-anchor="end">Ø ${fmt(a)}</text>`;
+  s += `<polyline class="pl" points="${gs.map((g, i) => X(i).toFixed(1) + ',' + Y(g.value).toFixed(1)).join(' ')}"/>`;
+  s += gs.map((g, i) => `<circle cx="${X(i).toFixed(1)}" cy="${Y(g.value).toFixed(1)}" r="5.5" class="pt ${gClass(g.value)}"/>`).join('');
+  return `<div class="card-title">📈 Verlauf</div>` + s + `</svg>`;
+}
+function zielBox(s, z) {
+  const w = ui.nextWeight, targets = [];
+  for (let t = z; t >= 1 && targets.length < 3; t--) targets.push(t);
+  const rows = targets.map(t => {
+    const r = needed(s.grades, t, w);
+    let txt, cls;
+    if (r.state === 'safe') { txt = 'jede Note reicht'; cls = 'g1'; }
+    else if (r.state === 'impossible') { txt = 'nicht mehr erreichbar'; cls = 'g4'; }
+    else { txt = fmt(r.value, 1) + ' oder besser'; cls = gClass(r.value); }
+    return `<div class="ziel-row"><span>Zeugnisnote <b>${t}</b> ${t === z ? 'halten' : 'erreichen'}</span><span class="pill ${cls}">${txt}</span></div>`;
+  }).join('');
+  return `<div class="card"><div class="card-title">🎯 Was brauche ich in der nächsten Note?</div>
+  <div class="chips">${WEIGHT_CHIPS.map(c => `<button class="chip ${c === w ? 'on' : ''}" data-a="next-weight" data-v="${c}">Gew. ${fmtW(c)}</button>`).join('')}</div>${rows}
+  <div class="hint">Gerechnet mit einer weiteren Note der Gewichtung ${fmtW(w)}. Zeugnisnote: Schnitt bis 1,49 → 1, bis 2,49 → 2 usw.</div></div>`;
+}
+function viewSubject(y) {
+  const s = y.subjects.find(x => x.id === ui.subjectId);
+  if (!s) { ui.subjectId = null; return viewSubjects(y); }
+  const a = avg(s.grades), z = zeugnisNote(a), idx = y.subjects.indexOf(s);
+  const grp = y.groups.filter(g => g.members.some(m => m.subjectId === s.id));
+  const W = s.grades.reduce((t, g) => t + g.weight, 0);
+  let h = `<div class="detail-top"><button class="btn ghost sm" data-a="back">${IC.back} Fächer</button>
+  <div class="icon-btns"><button class="icon-btn" data-a="move-subject" data-id="${s.id}" data-dir="-1" ${idx === 0 ? 'disabled' : ''} aria-label="Nach oben">${IC.up}</button><button class="icon-btn" data-a="move-subject" data-id="${s.id}" data-dir="1" ${idx === y.subjects.length - 1 ? 'disabled' : ''} aria-label="Nach unten">${IC.down}</button><button class="icon-btn" data-a="edit-subject" data-id="${s.id}" aria-label="Umbenennen">${IC.edit}</button><button class="icon-btn danger" data-a="delete-subject" data-id="${s.id}" aria-label="Fach löschen">${IC.trash}</button></div></div>`;
+  h += `<section class="hero"><div class="hero-label">${esc(s.name)} · Schnitt</div><div class="hero-value">${fmt(a)}</div><div class="hero-grid"><div><span>${z != null ? z : '–'}</span>Zeugnisnote</div><div><span>${s.grades.length}</span>Noten</div><div><span>${fmtW(W)}</span>Gewichtung gesamt</div></div>${grp.length ? `<div class="hero-note">Zählt zum Zeugnisfach: ${grp.map(g => esc(g.name)).join(', ')}</div>` : ''}</section>`;
+  if (s.grades.length >= 2) h += `<div class="card">${chart(s.grades, a)}</div>`;
+  if (s.grades.length) h += zielBox(s, z);
+  h += `<div class="sec-row"><h2 class="sec">Noten</h2><button class="btn sm pri" data-a="add-grade" data-s="${s.id}">${IC.plus} Note</button></div>`;
+  h += s.grades.length ? `<div class="list">${sortedGrades(s.grades).reverse().map(g => gradeRow(s, g, false)).join('')}</div>` : `<div class="empty small">Noch keine Noten. Tippe auf <b>+ Note</b>.</div>`;
+  return h;
+}
+function viewZeugnis(y) {
+  const items = zeugnisItems(y), ov = overall(y);
+  let h = `<section class="hero"><div class="hero-label">Zeugnis · ${esc(y.name)}</div><div class="hero-value">${fmt(ov && ov.exact)}</div><div class="hero-grid"><div><span>${ov ? fmt(ov.notes) : '–'}</span>Schnitt der Zeugnisnoten</div><div><span>${ov ? ov.count : 0}/${items.length}</span>Zeugnisfächer mit Noten</div></div></section>`;
+  if (!y.subjects.length) return h + emptyYear(y);
+  h += `<div class="sec-row"><h2 class="sec">Zeugnisfächer</h2><button class="btn sm" data-a="add-group">${IC.plus} Kombiniert</button></div><div class="list">`;
+  h += items.map(it => {
+    const z = zeugnisNote(it.value);
+    if (it.kind === 'subject') return `<button class="row" data-a="open-subject" data-id="${it.id}"><span class="row-main"><span class="row-title">${esc(it.name)}</span><span class="row-sub">Einzelfach</span></span>${it.value != null ? `<span class="row-avg">${fmt(it.value)}</span>` : ''}<span class="badge ${gClass(z)}">${z != null ? z : '–'}</span></button>`;
+    const g = it.group, tw = g.members.reduce((t, m) => t + m.weight, 0);
+    const parts = g.members.map(m => {
+      const sub = y.subjects.find(x => x.id === m.subjectId), a = sub ? avg(sub.grades) : null;
+      return `<div class="member"><span>${esc(sub ? sub.name : '?')} <i>(${fmtW(m.weight)}/${fmtW(tw)})</i></span><b>${a != null ? fmt(a) : 'keine Noten'}</b></div>`;
+    }).join('');
+    return `<div class="row group"><div class="group-head" data-a="edit-group" data-id="${g.id}" role="button"><span class="row-main"><span class="row-title">${esc(g.name)}</span><span class="row-sub">Kombiniert · tippen zum Bearbeiten</span></span>${it.value != null ? `<span class="row-avg">${fmt(it.value)}</span>` : ''}<span class="badge ${gClass(z)}">${z != null ? z : '–'}</span></div><div class="members">${parts}</div></div>`;
+  }).join('');
+  h += `</div><p class="hint">Ein kombiniertes Zeugnisfach fasst mehrere Teilfächer zu einer Zeugnisnote zusammen (z. B. TPH mit Gewicht 2 und TPH-FT mit Gewicht 1 = ⅔ zu ⅓). Teilfächer ohne Noten werden ausgelassen. Der Gesamtschnitt ist der Mittelwert aller Zeugnisfächer, die schon Noten haben.</p>`;
+  return h;
+}
+function canShareFiles() {
+  try { return !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 't.txt', { type: 'text/plain' })] })); } catch (e) { return false; }
+}
+function viewData(y) {
+  const lb = db.lastBackup ? new Date(db.lastBackup).toLocaleDateString('de-DE') + ', ' + new Date(db.lastBackup).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : 'noch nie';
+  let h = installCard();
+  h += `<h2 class="sec">Schuljahre</h2><div class="list">${db.years.map(x => {
+    const n = x.subjects.reduce((t, s) => t + s.grades.length, 0);
+    return `<div class="row"><span class="row-main"><span class="row-title">${esc(x.name)}${x.id === y.id ? '<span class="tag">aktiv</span>' : ''}</span><span class="row-sub">${x.subjects.length} Fächer · ${n} Noten</span></span><span class="icon-btns">${x.id !== y.id ? `<button class="btn sm" data-a="switch-year" data-id="${x.id}">Öffnen</button>` : ''}<button class="icon-btn" data-a="edit-year" data-id="${x.id}" aria-label="Umbenennen">${IC.edit}</button><button class="icon-btn danger" data-a="delete-year" data-id="${x.id}" aria-label="Löschen">${IC.trash}</button></span></div>`;
+  }).join('')}</div>
+  <div class="stack row-btns"><button class="btn" data-a="add-year">${IC.plus} Neues Schuljahr</button>${db.years.some(x => x.id !== y.id && x.subjects.length) ? `<button class="btn" data-a="copy-subjects">Fächer aus anderem Schuljahr übernehmen</button>` : ''}</div>`;
+  h += `<h2 class="sec">Sicherung</h2><div class="card"><p class="txt">Deine Noten werden automatisch auf diesem Gerät gespeichert. Mach trotzdem regelmäßig ein Backup. Letztes Backup: <b>${lb}</b></p>
+  <div class="stack" style="margin-top:12px"><button class="btn pri" data-a="export-html">💾 App mit allen Noten speichern (.html)</button><button class="btn" data-a="export-json">Backup-Datei herunterladen (.json)</button>${canShareFiles() ? `<button class="btn" data-a="share-json">Backup teilen (z. B. an dich selbst schicken)</button>` : ''}<button class="btn" data-a="import">Backup importieren</button></div>
+  <p class="hint">„App mit allen Noten speichern“ erzeugt eine neue HTML-Datei, in der alle Noten enthalten sind. Die kannst du auf jedem Gerät öffnen. Beim Import kannst du auch deine alte Notendatei aus dem 1. Jahr auswählen.</p></div>`;
+  h += `<h2 class="sec">Einstellungen</h2><div class="card"><label class="lbl" style="margin-top:0">Name (Anzeige oben)</label><input class="inp" data-change="name" value="${esc(db.settings.name)}" maxlength="40"></div>`;
+  h += `<h2 class="sec">Gut zu wissen</h2><div class="card txt">
+  <p><b>Wo liegen meine Noten?</b> Nur auf diesem Handy, im Speicher der App. Sie werden nicht ins Internet hochgeladen.</p>
+  <p><b>Wichtig:</b> Wenn du die App löschst oder die Browserdaten löschst, sind die Noten weg. Mach deshalb regelmäßig ein Backup (z. B. „Backup teilen“ und an dich selbst schicken). Bei einem neuen Handy importierst du einfach das Backup.</p></div>`;
+  h += `<h2 class="sec">Gefahrenzone</h2><div class="card"><button class="btn danger-btn" style="width:100%" data-a="reset">Alle Daten löschen</button></div><p class="hint center">Notenverwaltung v${APP_VERSION} · funktioniert komplett offline</p>`;
+  return h;
+}
+function viewNav() {
+  const t = [['overview', 'Übersicht', IC.home], ['subjects', 'Fächer', IC.book], ['zeugnis', 'Zeugnis', IC.award], ['data', 'Daten', IC.data]];
+  return `<nav class="bottom">${t.map(([k, l, i]) => `<button class="${ui.tab === k ? 'on' : ''}" data-a="nav" data-tab="${k}">${i}<span>${l}</span></button>`).join('')}</nav>`;
+}
+function render() {
+  const y = year();
+  let main;
+  if (ui.tab === 'subjects') main = ui.subjectId ? viewSubject(y) : viewSubjects(y);
+  else if (ui.tab === 'zeugnis') main = viewZeugnis(y);
+  else if (ui.tab === 'data') main = viewData(y);
+  else main = viewOverview(y);
+  const fab = (ui.tab === 'overview' || ui.tab === 'subjects') && y.subjects.length ? `<button class="fab" data-a="add-grade" data-s="${ui.subjectId || ''}">${IC.plus} Note</button>` : '';
+  document.getElementById('app').innerHTML = viewHeader(y) + `<main>${main}</main>` + fab + viewNav();
+}
+
+/* ===== Dialoge ===== */
+const head = t => `<div class="sheet-head"><h3>${t}</h3><button class="x" data-a="close" aria-label="Schließen">×</button></div>`;
+function modalSubject(m) {
+  const y = year(), s = m.id ? y.subjects.find(x => x.id === m.id) : null;
+  if (s) return head('Fach umbenennen') + `<label class="lbl">Name</label><input class="inp" id="f-name" value="${esc(s.name)}" maxlength="60" autofocus><div class="err" id="f-err"></div><div class="actions"><button class="btn pri" data-a="save-subject">Speichern</button><button class="btn" data-a="close">Abbrechen</button></div>`;
+  const existing = new Set(y.subjects.map(x => x.name.toLowerCase()));
+  const sugg = [...new Set([...db.years.filter(x => x.id !== y.id).flatMap(x => x.subjects.map(z => z.name)), ...YEAR1_SUBJECTS])].filter(n => !existing.has(n.toLowerCase()));
+  return head('Fächer anlegen') + `<label class="lbl">Fachname(n)</label><textarea class="inp" id="f-name" rows="2" placeholder="z. B. AUT, TM, SPS" autofocus></textarea><div class="hint">Mehrere Fächer mit Komma oder Zeilenumbruch trennen.</div>
+  ${sugg.length ? `<label class="lbl">Vorschläge (antippen)</label><div class="chips wrap">${sugg.map(n => `<button class="chip" data-a="sugg" data-v="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+  <div class="err" id="f-err"></div><div class="actions"><button class="btn pri" data-a="save-subject">Anlegen</button><button class="btn" data-a="close">Abbrechen</button></div>`;
+}
+function modalGrade(m) {
+  const y = year(), s = y.subjects.find(x => x.id === m.subjectId) || null;
+  const g = s && m.gradeId ? s.grades.find(x => x.id === m.gradeId) : null;
+  const w = g ? g.weight : 1;
+  const types = g && !GRADE_TYPES.includes(g.type) ? GRADE_TYPES.concat(g.type) : GRADE_TYPES;
+  return head(g ? 'Note bearbeiten' : 'Note eintragen') + `
+  <label class="lbl">Fach</label><select class="inp" id="f-subject">${y.subjects.map(x => `<option value="${x.id}" ${s && x.id === s.id ? 'selected' : ''}>${esc(x.name)}</option>`).join('')}</select>
+  <div class="two"><div><label class="lbl">Note (1,0 – 6,0)</label><input class="inp big" id="f-value" inputmode="decimal" autocomplete="off" placeholder="z. B. 2,3" value="${g ? fmtG(g.value) : ''}" ${g ? '' : 'autofocus'}></div>
+  <div><label class="lbl">Datum</label><input class="inp" type="date" id="f-date" value="${esc(g ? g.date : todayISO())}"></div></div>
+  <label class="lbl">Gewichtung</label><div class="chips">${WEIGHT_CHIPS.map(c => `<button class="chip ${c === w ? 'on' : ''}" data-a="wchip" data-v="${c}">${fmtW(c)}</button>`).join('')}<input class="inp chip-inp" id="f-weight" inputmode="decimal" value="${fmtW(w)}" aria-label="Gewichtung"></div>
+  <label class="lbl">Art</label><select class="inp" id="f-type">${types.map(t => `<option ${(g ? g.type === t : t === 'Klassenarbeit') ? 'selected' : ''}>${esc(t)}</option>`).join('')}</select>
+  <label class="lbl">Beschreibung (optional)</label><input class="inp" id="f-desc" maxlength="80" placeholder="z. B. KA 1 – Regelungstechnik" value="${esc(g ? g.desc : '')}">
+  <div class="err" id="f-err"></div>
+  <div class="actions"><button class="btn pri" data-a="save-grade">${g ? 'Speichern' : 'Note speichern'}</button>${g ? `<button class="btn danger-btn" data-a="delete-grade">Löschen</button>` : `<button class="btn" data-a="close">Abbrechen</button>`}</div>`;
+}
+function modalGroup(m) {
+  const y = year(), g = m.id ? y.groups.find(x => x.id === m.id) : null;
+  const other = new Set(y.groups.filter(x => x !== g).flatMap(x => x.members.map(mm => mm.subjectId)));
+  return head(g ? 'Zeugnisfach bearbeiten' : 'Kombiniertes Zeugnisfach') + `
+  <label class="lbl">Name im Zeugnis</label><input class="inp" id="f-name" value="${esc(g ? g.name : '')}" placeholder="z. B. Technische Physik" maxlength="60">
+  <label class="lbl">Teilfächer und Gewichtung</label><div class="hint" style="margin-top:0">Haken setzen und Gewicht eintragen (z. B. 2 und 1 für ⅔ und ⅓).</div>
+  <div class="pick">${y.subjects.map(s => {
+    const mm = g && g.members.find(x => x.subjectId === s.id), used = other.has(s.id);
+    return `<label class="pick-row ${used ? 'dis' : ''}"><input type="checkbox" data-sid="${s.id}" ${mm ? 'checked' : ''} ${used ? 'disabled' : ''}><span>${esc(s.name)}${used ? ' <i>(schon in anderem Zeugnisfach)</i>' : ''}</span><input class="inp w" inputmode="decimal" data-wid="${s.id}" value="${mm ? fmtW(mm.weight) : '1'}" ${used ? 'disabled' : ''} aria-label="Gewicht ${esc(s.name)}"></label>`;
+  }).join('')}</div>
+  <div class="err" id="f-err"></div>
+  <div class="actions"><button class="btn pri" data-a="save-group">Speichern</button>${g ? `<button class="btn danger-btn" data-a="delete-group">Auflösen</button>` : `<button class="btn" data-a="close">Abbrechen</button>`}</div>`;
+}
+function modalYear(m) {
+  const x = m.id ? db.years.find(z => z.id === m.id) : null, cur = year();
+  return head(x ? 'Schuljahr umbenennen' : 'Neues Schuljahr') + `<label class="lbl">Name</label><input class="inp" id="f-name" value="${esc(x ? x.name : '')}" placeholder="z. B. 3. Jahr (2027/28)" maxlength="40" autofocus>
+  ${!x && cur.subjects.length ? `<label class="pick-row" style="margin-top:12px"><input type="checkbox" id="f-copy"><span>Fächer aus „${esc(cur.name)}“ übernehmen (ohne Noten)</span></label>` : ''}
+  <div class="err" id="f-err"></div><div class="actions"><button class="btn pri" data-a="save-year">Speichern</button><button class="btn" data-a="close">Abbrechen</button></div>`;
+}
+function modalCopy() {
+  const y = year(), src = db.years.filter(x => x.id !== y.id && x.subjects.length);
+  return head('Fächer übernehmen') + `<p class="txt">Die Fächer werden ohne Noten in „${esc(y.name)}“ angelegt. Fächer, die es dort schon gibt, werden übersprungen.</p>
+  <label class="lbl">Aus Schuljahr</label><select class="inp" id="f-src">${src.map(x => `<option value="${x.id}">${esc(x.name)} (${x.subjects.length} Fächer)</option>`).join('')}</select>
+  <label class="pick-row" style="margin-top:12px"><input type="checkbox" id="f-groups" checked><span>Kombinierte Zeugnisfächer mit übernehmen</span></label>
+  <div class="actions"><button class="btn pri" data-a="do-copy">Übernehmen</button><button class="btn" data-a="close">Abbrechen</button></div>`;
+}
+function modalImport(m) {
+  const d = m.data, n = d.years.length, g = d.years.reduce((t, y) => t + y.subjects.reduce((u, s) => u + s.grades.length, 0), 0);
+  return head('Backup importieren') + `<p class="txt">Das Backup enthält <b>${n} Schuljahr${n === 1 ? '' : 'e'}</b> mit insgesamt <b>${g} Noten</b>: ${d.years.map(y => esc(y.name)).join(', ')}.</p>
+  <div class="stack" style="margin-top:14px"><button class="btn pri" data-a="import-add">Als zusätzliche Schuljahre hinzufügen</button><button class="btn danger-btn" data-a="import-replace">Alle aktuellen Daten ersetzen</button><button class="btn" data-a="close">Abbrechen</button></div>`;
+}
+function modalImportOld(m) {
+  const n = m.data.filter(s => s && s.name).length, g = m.data.reduce((t, s) => t + ((s && s.grades) ? s.grades.length : 0), 0);
+  return head('Alte Notendatei importieren') + `<p class="txt">Gefunden: <b>${n} Fächer</b> mit <b>${g} Noten</b> aus der alten Version. Sie werden als eigenes Schuljahr angelegt – dein aktuelles Schuljahr bleibt unverändert.</p>
+  <label class="lbl">Name des Schuljahres</label><input class="inp" id="f-name" value="1. Jahr (2025/26)" maxlength="40">
+  <div class="actions"><button class="btn pri" data-a="import-old">Importieren</button><button class="btn" data-a="close">Abbrechen</button></div>`;
+}
+function renderModal() {
+  const m = ui.modal, root = document.getElementById('modal');
+  if (!m) { root.innerHTML = ''; document.body.classList.remove('noscroll'); return; }
+  const fn = { subject: modalSubject, grade: modalGrade, group: modalGroup, year: modalYear, copy: modalCopy, import: modalImport, 'import-old': modalImportOld }[m.type];
+  root.innerHTML = `<div class="sheet" data-a="overlay"><div class="sheet-box" role="dialog" aria-modal="true">${fn(m)}</div></div>`;
+  document.body.classList.add('noscroll');
+  const f = root.querySelector('[autofocus]');
+  if (f) setTimeout(() => f.focus(), 60);
+}
+const setErr = t => { const e = document.getElementById('f-err'); if (e) e.textContent = t; };
+
+/* ===== Aktionen ===== */
+function saveSubject() {
+  const m = ui.modal, y = year(), raw = val('f-name');
+  if (m.id) {
+    const s = y.subjects.find(x => x.id === m.id), n = raw.trim();
+    if (!n) return setErr('Bitte einen Namen eingeben.');
+    if (y.subjects.some(x => x !== s && x.name.toLowerCase() === n.toLowerCase())) return setErr('Dieses Fach gibt es schon.');
+    s.name = n.slice(0, 60); save(); closeModal(); render(); return;
+  }
+  const names = [...new Set(raw.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean))];
+  if (!names.length) return setErr('Bitte mindestens einen Fachnamen eingeben.');
+  const existing = new Set(y.subjects.map(x => x.name.toLowerCase()));
+  let added = 0;
+  names.forEach(n => { if (existing.has(n.toLowerCase())) return; existing.add(n.toLowerCase()); y.subjects.push({ id: uid(), name: n.slice(0, 60), grades: [] }); added++; });
+  save(); closeModal(); render();
+  toast(added ? (added === 1 ? '1 Fach angelegt' : added + ' Fächer angelegt') : 'Diese Fächer gibt es schon.');
+}
+function toggleSugg(el) {
+  const ta = document.getElementById('f-name');
+  const list = ta.value.split(/[,;\n]+/).map(t => t.trim()).filter(Boolean), v = el.dataset.v;
+  const i = list.findIndex(x => x.toLowerCase() === v.toLowerCase());
+  if (i >= 0) { list.splice(i, 1); el.classList.remove('on'); } else { list.push(v); el.classList.add('on'); }
+  ta.value = list.join(', ');
+}
+function deleteSubject(id) {
+  const y = year(), s = y.subjects.find(x => x.id === id); if (!s) return;
+  if (!confirm(`Fach „${s.name}“${s.grades.length ? ' mit ' + s.grades.length + ' Noten' : ''} wirklich löschen?`)) return;
+  y.subjects = y.subjects.filter(x => x !== s);
+  y.groups.forEach(g => { g.members = g.members.filter(m => m.subjectId !== id); });
+  y.groups = y.groups.filter(g => g.members.length);
+  if (ui.subjectId === id) { ui.subjectId = null; popNav(); }
+  save(); render(); toast('Fach gelöscht');
+}
+function moveSubject(id, dir) {
+  const y = year(), i = y.subjects.findIndex(x => x.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= y.subjects.length) return;
+  [y.subjects[i], y.subjects[j]] = [y.subjects[j], y.subjects[i]];
+  save(); render();
+}
+function saveGrade() {
+  const m = ui.modal, y = year();
+  const target = y.subjects.find(x => x.id === val('f-subject'));
+  const v = parseNum(val('f-value')), w = parseNum(val('f-weight'));
+  if (!target) return setErr('Bitte ein Fach wählen.');
+  if (v == null || v < 1 || v > 6) return setErr('Die Note muss zwischen 1,0 und 6,0 liegen.');
+  if (w == null || w <= 0 || w > 20) return setErr('Die Gewichtung muss größer als 0 sein (z. B. 0,5 / 1 / 2).');
+  const data = { value: Math.round(v * 100) / 100, weight: Math.round(w * 100) / 100, date: val('f-date'), type: val('f-type'), desc: val('f-desc').trim() };
+  if (m.gradeId) {
+    const old = y.subjects.find(x => x.id === m.subjectId), g = old && old.grades.find(x => x.id === m.gradeId);
+    if (!g) return closeModal();
+    Object.assign(g, data);
+    if (old !== target) { old.grades = old.grades.filter(x => x !== g); target.grades.push(g); }
+  } else {
+    target.grades.push(Object.assign({ id: uid(), created: Date.now() }, data));
+  }
+  ui.lastSubjectId = target.id;
+  save(); closeModal(); render();
+  toast(m.gradeId ? 'Note gespeichert' : `${fmtG(data.value)} in ${target.name} eingetragen`);
+}
+function deleteGrade() {
+  const m = ui.modal, y = year(), s = y.subjects.find(x => x.id === m.subjectId);
+  if (!s || !confirm('Diese Note wirklich löschen?')) return;
+  s.grades = s.grades.filter(g => g.id !== m.gradeId);
+  save(); closeModal(); render(); toast('Note gelöscht');
+}
+function saveGroup() {
+  const m = ui.modal, y = year(), name = val('f-name').trim();
+  if (!name) return setErr('Bitte einen Namen eingeben.');
+  const members = [];
+  document.querySelectorAll('#modal input[type=checkbox][data-sid]').forEach(cb => {
+    if (!cb.checked || cb.disabled) return;
+    const inp = document.querySelector(`#modal [data-wid="${cb.dataset.sid}"]`);
+    members.push({ subjectId: cb.dataset.sid, weight: parseNum(inp ? inp.value : '1') });
+  });
+  if (members.length < 2) return setErr('Bitte mindestens zwei Teilfächer auswählen.');
+  if (members.some(x => x.weight == null || x.weight <= 0)) return setErr('Jede Gewichtung muss größer als 0 sein.');
+  if (m.id) { const g = y.groups.find(x => x.id === m.id); g.name = name; g.members = members; }
+  else y.groups.push({ id: uid(), name, members });
+  save(); closeModal(); render(); toast('Zeugnisfach gespeichert');
+}
+function deleteGroup() {
+  const m = ui.modal, y = year(), g = y.groups.find(x => x.id === m.id);
+  if (!g || !confirm(`Zeugnisfach „${g.name}“ auflösen? Die Teilfächer und ihre Noten bleiben erhalten.`)) return;
+  y.groups = y.groups.filter(x => x !== g);
+  save(); closeModal(); render();
+}
+function copySubjects(from, to, withGroups) {
+  const map = {}, existing = new Map(to.subjects.map(s => [s.name.toLowerCase(), s.id]));
+  let added = 0;
+  from.subjects.forEach(s => {
+    const k = s.name.toLowerCase();
+    if (existing.has(k)) { map[s.id] = existing.get(k); return; }
+    const id = uid(); to.subjects.push({ id, name: s.name, grades: [] }); existing.set(k, id); map[s.id] = id; added++;
+  });
+  if (withGroups) {
+    const used = new Set(to.groups.flatMap(g => g.members.map(m => m.subjectId)));
+    const names = new Set(to.groups.map(g => g.name.toLowerCase()));
+    from.groups.forEach(g => {
+      if (names.has(g.name.toLowerCase())) return;
+      const members = g.members.map(m => ({ subjectId: map[m.subjectId], weight: m.weight })).filter(m => m.subjectId && !used.has(m.subjectId));
+      if (members.length >= 2) { members.forEach(m => used.add(m.subjectId)); to.groups.push({ id: uid(), name: g.name, members }); }
+    });
+  }
+  return added;
+}
+function saveYear() {
+  const m = ui.modal, name = val('f-name').trim();
+  if (!name) return setErr('Bitte einen Namen eingeben.');
+  if (m.id) { db.years.find(x => x.id === m.id).name = name; }
+  else {
+    const cur = year(), ny = newYear(name);
+    const cb = document.getElementById('f-copy');
+    if (cb && cb.checked) copySubjects(cur, ny, true);
+    db.years.push(ny); db.activeYearId = ny.id; ui.subjectId = null;
+  }
+  save(); closeModal(); render(); toast(m.id ? 'Schuljahr umbenannt' : 'Schuljahr angelegt und geöffnet');
+}
+function deleteYear(id) {
+  const x = db.years.find(z => z.id === id); if (!x) return;
+  if (db.years.length === 1) return toast('Das letzte Schuljahr kann nicht gelöscht werden.');
+  const n = x.subjects.reduce((t, s) => t + s.grades.length, 0);
+  if (!confirm(`Schuljahr „${x.name}“ mit ${x.subjects.length} Fächern und ${n} Noten wirklich löschen?`)) return;
+  db.years = db.years.filter(z => z !== x);
+  if (db.activeYearId === id) { db.activeYearId = db.years[db.years.length - 1].id; ui.subjectId = null; }
+  save(); render(); toast('Schuljahr gelöscht');
+}
+
+/* ===== Backup ===== */
+function downloadFile(name, content, mime) {
+  const blob = new Blob([content], { type: mime }), url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 2000);
+}
+function buildHtmlWithData() {
+  const json = JSON.stringify(db).replace(/</g, '\\u003c');
+  return TEMPLATE.replace(/(<script id="notenBackup" type="application\/json">)[\s\S]*?(<\/script>)/, (all, a, b) => a + json + b);
+}
+function exportHtml() {
+  db.lastBackup = Date.now(); save();
+  downloadFile('Notenverwaltung_' + todayISO() + '.html', buildHtmlWithData(), 'text/html');
+  render(); toast('App mit allen Noten gespeichert');
+}
+function exportJson() {
+  db.lastBackup = Date.now(); save();
+  downloadFile('noten-backup_' + todayISO() + '.json', JSON.stringify(db, null, 1), 'application/json');
+  render(); toast('Backup-Datei gespeichert');
+}
+async function shareJson() {
+  const content = JSON.stringify(db, null, 1);
+  const candidates = [new File([content], 'noten-backup_' + todayISO() + '.json', { type: 'application/json' }), new File([content], 'noten-backup_' + todayISO() + '.txt', { type: 'text/plain' })];
+  const file = candidates.find(f => { try { return navigator.canShare({ files: [f] }); } catch (e) { return false; } });
+  if (!file) return exportJson();
+  try {
+    await navigator.share({ files: [file], title: 'Noten-Backup' });
+    db.lastBackup = Date.now(); save(); render(); toast('Backup geteilt');
+  } catch (e) { if (e && e.name !== 'AbortError') exportJson(); }
+}
+function parseBackup(text) {
+  try { return JSON.parse(text); } catch (e) {}
+  const m1 = text.match(/<script id="notenBackup" type="application\/json">([\s\S]*?)<\/script>/);
+  if (m1) { try { const d = JSON.parse(m1[1]); if (d) return d; } catch (e) {} }
+  const m2 = text.match(/\/\/ NOTEN-BACKUP: (\[.*\])/);
+  if (m2) { try { return JSON.parse(m2[1]); } catch (e) {} }
+  return null;
+}
+function importText(text) {
+  const data = parseBackup(text);
+  if (Array.isArray(data) && data.length) return openModal({ type: 'import-old', data });
+  if (data && Array.isArray(data.years)) return openModal({ type: 'import', data: normalize(JSON.parse(JSON.stringify(data))) });
+  toast('In dieser Datei wurden keine Notendaten gefunden.');
+}
+function readFile(f) {
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = rej; r.readAsText(f); });
+}
+function importAdd() {
+  const d = ui.modal.data, names = new Set(db.years.map(y => y.name.toLowerCase()));
+  d.years.forEach(y => { y.id = uid(); if (names.has(y.name.toLowerCase())) y.name += ' (Import)'; names.add(y.name.toLowerCase()); db.years.push(y); });
+  save(); closeModal(); render(); toast(d.years.length + ' Schuljahr(e) hinzugefügt – oben auswählbar');
+}
+function importReplace() {
+  if (!confirm('Wirklich ALLE aktuellen Daten durch das Backup ersetzen?')) return;
+  db = normalize(ui.modal.data); ui.subjectId = null;
+  save(); closeModal(); render(); toast('Backup wiederhergestellt');
+}
+function importOld() {
+  const name = val('f-name').trim() || '1. Jahr (2025/26)';
+  db.years.unshift(yearFromOld(ui.modal.data, name));
+  save(); closeModal(); render(); toast(`„${name}“ importiert – oben im Menü auswählbar`);
+}
+
+/* ===== Ereignisse ===== */
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const a = el.dataset.a, d = el.dataset;
+  if (a === 'overlay') { if (e.target === el) closeModal(); return; }
+  if (el.disabled) return;
+  const y = year();
+  switch (a) {
+    case 'close': closeModal(); break;
+    case 'nav':
+      if (ui.subjectId) { ui.subjectId = null; popNav(); }
+      ui.tab = d.tab; render(); window.scrollTo(0, 0); break;
+    case 'open-subject': ui.subjectId = d.id; ui.tab = 'subjects'; ui.lastSubjectId = d.id; pushNav(); render(); window.scrollTo(0, 0); break;
+    case 'back': ui.subjectId = null; popNav(); render(); break;
+    case 'add-subject': openModal({ type: 'subject' }); break;
+    case 'edit-subject': openModal({ type: 'subject', id: d.id }); break;
+    case 'save-subject': saveSubject(); break;
+    case 'sugg': toggleSugg(el); break;
+    case 'delete-subject': deleteSubject(d.id); break;
+    case 'move-subject': moveSubject(d.id, Number(d.dir)); break;
+    case 'add-grade': {
+      if (!y.subjects.length) { toast('Lege zuerst ein Fach an.'); openModal({ type: 'subject' }); break; }
+      const pick = [d.s, ui.subjectId, ui.lastSubjectId].find(id => id && y.subjects.some(s => s.id === id)) || y.subjects[0].id;
+      openModal({ type: 'grade', subjectId: pick }); break;
+    }
+    case 'edit-grade': openModal({ type: 'grade', subjectId: d.s, gradeId: d.g }); break;
+    case 'save-grade': saveGrade(); break;
+    case 'delete-grade': deleteGrade(); break;
+    case 'wchip':
+      document.getElementById('f-weight').value = fmtW(Number(d.v));
+      el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === el)); break;
+    case 'next-weight': ui.nextWeight = Number(d.v); render(); break;
+    case 'add-group': openModal({ type: 'group' }); break;
+    case 'edit-group': openModal({ type: 'group', id: d.id }); break;
+    case 'save-group': saveGroup(); break;
+    case 'delete-group': deleteGroup(); break;
+    case 'switch-year': db.activeYearId = d.id; ui.subjectId = null; save(); render(); toast('Schuljahr: ' + year().name); break;
+    case 'add-year': openModal({ type: 'year' }); break;
+    case 'edit-year': openModal({ type: 'year', id: d.id }); break;
+    case 'save-year': saveYear(); break;
+    case 'delete-year': deleteYear(d.id); break;
+    case 'copy-subjects': openModal({ type: 'copy' }); break;
+    case 'do-copy': {
+      const src = db.years.find(x => x.id === val('f-src')); if (!src) return closeModal();
+      const n = copySubjects(src, y, document.getElementById('f-groups').checked);
+      save(); closeModal(); render(); toast(n ? n + ' Fächer übernommen' : 'Keine neuen Fächer – alle schon vorhanden'); break;
+    }
+    case 'install': installApp(); break;
+    case 'export-html': exportHtml(); break;
+    case 'export-json': exportJson(); break;
+    case 'share-json': shareJson(); break;
+    case 'import': document.getElementById('file-import').click(); break;
+    case 'import-add': importAdd(); break;
+    case 'import-replace': importReplace(); break;
+    case 'import-old': importOld(); break;
+    case 'reset':
+      if (confirm('Wirklich ALLE Schuljahre, Fächer und Noten löschen?') && confirm('Letzte Warnung: Hast du ein Backup? Endgültig löschen?')) {
+        db = freshDb(); ui.subjectId = null; ui.tab = 'overview'; save(); render(); toast('Alle Daten gelöscht');
+      }
+      break;
+  }
+});
+document.addEventListener('change', e => {
+  const el = e.target, c = el.dataset ? el.dataset.change : null;
+  if (c === 'year') {
+    db.activeYearId = el.value;
+    if (ui.subjectId) { ui.subjectId = null; popNav(); }
+    save(); render(); toast('Schuljahr: ' + year().name);
+  } else if (c === 'name') {
+    db.settings.name = el.value.trim(); save(); render();
+  } else if (el.id === 'file-import') {
+    const f = el.files && el.files[0]; el.value = '';
+    if (f) readFile(f).then(importText).catch(() => toast('Datei konnte nicht gelesen werden.'));
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'f-weight') {
+    const w = parseNum(e.target.value);
+    document.querySelectorAll('#modal [data-a="wchip"]').forEach(c => c.classList.toggle('on', Number(c.dataset.v) === w));
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && ui.modal && e.target.tagName === 'INPUT' && e.target.type !== 'checkbox') {
+    const b = document.querySelector('#modal .btn.pri'); if (b) { e.preventDefault(); b.click(); }
+  } else if (e.key === 'Escape' && ui.modal) closeModal();
+});
+
+/* ===== Start ===== */
+save();
+render();
+if (isOnline && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
+</script>
+</body>
+</html>
